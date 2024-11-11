@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة تطابق الصور</title>
+    
+    <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .game-container {
+            text-align: center;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 90%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            justify-content: center;
+        }
+        .grid-item {
+            width: 100px;
+            height: 100px;
+            background-color: #3498db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border-radius: 10px;
+            background-size: cover;
+            background-position: center;
+        }
+        .game-message {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #3498db;
+        }
+        .button {
+            background-color: #3498db;
+            color: white;
+            padding: 15px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #2980b9;
+        }
+        @media (max-width: 600px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 100px);
+            }
+            .button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>لعبة تطابق الصور</h1>
+        <h1>Picture matching game</h1>
+        <p id="balance">الرصيد: 0</p>
+        <div class="grid-container" id="gameBoard"></div>
+        <p id="gameMessage" class="game-message"></p>
+        <button id="playAgainBtn" class="button" onclick="restartGame()">إعادة اللعبة</button>
+        <button id="adBtn" class="button" onclick="showAdForReward()">عرض الإعلان للحصول على محاولة جديدة</button>
+    </div>
+
+    <script>
+        const images = [
+            "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgSLfvn3cUuW7AI1thTfL07SyvA4rGV7QOxJD8Qd52_WyXGPeYPCMx7YMikY8cEBKdSRgjuXHFufxL74F1UHDLH1PrIsi1fAJJWatGCuWZ_oNxtJ6Ijgk8KsmtfDtfB1aeMcTriV_nggeBYfnJr_YXchIbXHFsvo6FayQS7iXKE-4Mf8iXxzFYJrWJ8PHQ/s320/c235f225e97656ce52a42229df15cdb0.jpg",
+            "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhIpINOsfkKJK88VV6py8ONhJiGX2VuPWnGSNVAzFp-6ofP1V-n3wbm7ZtucQgiNnIesf013abo6eHpf6vX24YNGhsnnRFTYSDkogWFoGWrKmLdj49SgtN7BUIh0ScY6hRA8cNNJ6LNorpgMgmY0e8FTJcsfE03C1zgQ4BR3V6Z7oHZvHf-olcjza9MLuk/s320/images%20%281%29.png",
+            "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhzqufDs4vZGAzm6LdBXBIij6LVrKGSLHvkMpF0WRdJHB9txeXPWWS1ZhcktXGYY7E1fEPN_kCOdJnhOXLbqurOoKW1bOzzGxiqBO1yptB7GXxBmqE0bkTmHVfXo37RAOdwXHl8McMsJvi2kKiErejYuld-jBeJdPzADjnDleKcHN9EdEAW1NbRLYtMQ3Y/s320/41+NvwP4ZQL._AC_UF894,1000_QL80_.jpg",
+            "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg7L1FsfiyrzJAxuySFEU9W93tT8sHsbyMMJleFSrGDvq9s3XRj_7zGgDDBm0-46HoKePJYLp7SiUlBh7XTfvj6IMaHIGB9Ina8UO4_ezGflANFoNDM5fRV9OkvLW0zP-IHn4Jq85G2HP36R0q4EdKelnfKHKFHWQrNU9Uhp4srFrxWcK6DO1dH6_4KXBk/s320/images.jpg",
+            "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjv6HERJJVGyN6cM9ZIDYa6uPnoslbR-_lxRkMmvDJVljCIasicODiZuchiuzsCNxBAUPJm812j0V2-Lm-m8VqG-Jh10wBvzZurKVIaFWR5Bqs68CjtBP5q_NeSa4_zj-dyV_xYbJZjxOsw9-y_wLTK89Bjo9YfbJHd3x3n2Ui3GRKLhyphenhyphenVpial_U6UAlVc/s320/images.png",
+            "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj8tqQfGrKx8bJe_TqfYpBoDGykOD6JodsUnk9mZyCCcSapSrtHzx5moaBcxZNbs9ewK0CYzqclkwCTAmigBX_qP2AQMhXXspj0EXNBzwnHClnUsmSVXws-OkaB62P11lznsAfNUtBef064RSPswWTJ1-Y25B1zHb0PSeh-iUpp4sIxoT0GBNgdRKqnXcY/s320/images%20%281%29.jpg"
+        ];
+
+        let shuffledImages = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let lockBoard = false;
+        let userBalance = 0;
+        let userId = null; // To store userId from Telegram
+
+        function shuffleImages() {
+            shuffledImages = [...images, ...images];
+            shuffledImages.sort(() => 0.5 - Math.random());
+        }
+
+        function createBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            shuffledImages.forEach((image, index) => {
+                const card = document.createElement('div');
+                card.classList.add('grid-item');
+                card.setAttribute('data-id', index);
+                card.setAttribute('data-image', image);
+                card.style.backgroundImage = 'url(https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEig9SD35Gu_faboXUh8pYNVV3DdtBKPW1Hos8YbT-sIGeHq3sLe3u3zulYakJmHpzv5_61xTbIbp38Q8oUyAp_mlm0f_B_EAjVl0z8RX9eTTot2grhClyHnYVslhvBaaoHVU6Ql2UFxg8hzc6u9WbeiDGiZUfM4pfmwUZLXhNgk8mSv5mylnqqAavxtrEg/s360/527e9eaa136c5128559fe33d21e6d9a2.jpg)';
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard || this.classList.contains('flipped')) return;
+
+            this.style.backgroundImage = `url(${this.getAttribute('data-image')})`;
+            this.classList.add('flipped');
+            flippedCards.push(this);
+
+            if (flippedCards.length === 2) {
+                lockBoard = true;
+                setTimeout(checkMatch, 1000);
+            }
+        }
+
+        function checkMatch() {
+            const [cardOne, cardTwo] = flippedCards;
+
+            if (cardOne.getAttribute('data-image') === cardTwo.getAttribute('data-image')) {
+                matchedPairs++;
+                userBalance++;
+                document.getElementById('balance').textContent = `الرصيد: ${userBalance}`;
+                document.getElementById('gameMessage').textContent = "تم التطابق!";
+                if (matchedPairs === images.length) {
+                    document.getElementById('gameMessage').textContent = "تم الفوز!";
+                    document.getElementById('playAgainBtn').style.display = 'block';
+                }
+            } else {
+                cardOne.style.backgroundImage = 'url(https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEig9SD35Gu_faboXUh8pYNVV3DdtBKPW1Hos8YbT-sIGeHq3sLe3u3zulYakJmHpzv5_61xTbIbp38Q8oUyAp_mlm0f_B_EAjVl0z8RX9eTTot2grhClyHnYVslhvBaaoHVU6Ql2UFxg8hzc6u9WbeiDGiZUfM4pfmwUZLXhNgk8mSv5mylnqqAavxtrEg/s360/527e9eaa136c5128559fe33d21e6d9a2.jpg)';
+                cardTwo.style.backgroundImage = 'url(https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEig9SD35Gu_faboXUh8pYNVV3DdtBKPW1Hos8YbT-sIGeHq3sLe3u3zulYakJmHpzv5_61xTbIbp38Q8oUyAp_mlm0f_B_EAjVl0z8RX9eTTot2grhClyHnYVslhvBaaoHVU6Ql2UFxg8hzc6u9WbeiDGiZUfM4pfmwUZLXhNgk8mSv5mylnqqAavxtrEg/s360/527e9eaa136c5128559fe33d21e6d9a2.jpg)';
+                flippedCards.forEach(card => card.classList.remove('flipped'));
+            }
+            flippedCards = [];
+            lockBoard = false;
+        }
+
+        function restartGame() {
+            matchedPairs = 0;
+            shuffledImages = [];
+            flippedCards = [];
+            lockBoard = false;
+            userBalance = 0;
+            document.getElementById('balance').textContent = `الرصيد: ${userBalance}`;
+            document.getElementById('gameMessage').textContent = '';
+            createBoard();
+        }
+
+        function showAdForReward() {
+            // هنا نعرض إعلان تليجرام بناءً على API
+            Sad.showAd({
+                placementId: 'YOUR_PLACEMENT_ID',
+                onSuccess: function(response) {
+                    userId = response.userId;  // الحصول على userId من رد تليجرام
+                    restartGame();  // بعد مشاهدة الإعلان، بدء لعبة جديدة
+                },
+                onFailure: function() {
+                    alert("يجب مشاهدة الإعلان لفتح محاولة جديدة!");
+                }
+            });
+        }
+
+        // بدء اللعبة
+        shuffleImages();
+        createBoard();
+    </script>
+</body>
+</html>
